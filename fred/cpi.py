@@ -1,10 +1,18 @@
 from mom_data import *
 from qoq_data import *
+# import mom_data
+# import qoq_data
 import yfinance as yf
-# import pandas as pd
-# import numpy as np
+import pandas as pd
+import numpy as np
 import datetime
-# import pandas_datareader as pdr
+import pandas_datareader as pdr
+
+# Setting up the Start and End time 
+# series_code = ['CURRCIR', 'DGS10']
+data_source = 'fred'
+start = datetime.datetime (1990, 1, 1)      #  (2005, 5, 1)
+end = datetime.datetime (2030, 12, 1)
 
 #  6 TOTAL
 #  NSA Consumer Price Index for All Urban Consumers: All Items in U.S. City Average
@@ -100,13 +108,19 @@ cpi_data = cpi_data.drop(['CPI ALL', 'CPI All Less F&E', 'CPI Energy', 'Clev FED
 
 fedfunds = pdr.DataReader('FEDFUNDS', data_source, start, end)
 fedfunds = pd.DataFrame(fedfunds)
+
 gold_mon = pdr.DataReader('GOLDAMGBD228NLBM', data_source, start, end)
 gold_mon = pd.DataFrame(gold_mon)
-silver_mon = pdr.DataReader('SLVPRUSD', data_source, start, end)
+silver_mon = quandl.get("LBMA/SILVER", authtoken="1mEBe1BeVaAExprr7akA")
 silver_mon = pd.DataFrame(silver_mon)
+silver_mon = silver_mon.drop(['GBP', 'EURO'], axis=1)
+silver_mon.columns = ['Silver']
+print(silver_mon)
 # gold_mon.rename(columns = {"Col_1":"Mod_col"})
 gold_mon.columns = ['Gold']
-silver_mon.columns = ['Silver']
+
+gold_silver = pd.merge(silver_mon, gold_mon, left_index=True, right_index=True)
+gold_silver['gold/silver'] = gold_silver['Gold'] / gold_silver['Silver']
 
 
 def roc4(df):
@@ -117,14 +131,11 @@ def roc4(df):
     return df1
 
 
-gold_silver = pd.merge(gold_mon, silver_mon, left_index=True, right_index=True)
-gold_silver['gold/silver'] = gold_silver['Gold'] / gold_silver['Silver']
+# gold_silver['GS_roc'] = roc4(gold_silver['gold/silver'])
+# gold_silver['gold_roc'] = roc4(gold_silver['Gold']) 
+# gold_silver['silver_roc'] = roc4(gold_silver['Silver']) 
 
-gold_silver['GS_roc'] = roc4(gold_silver['gold/silver'])
-gold_silver['gold_roc'] = roc4(gold_silver['Gold']) 
-gold_silver['silver_roc'] = roc4(gold_silver['Silver']) 
-
-gold_silver['g/s_roc'] = gold_silver['gold_roc'] / gold_silver['silver_roc']
+# gold_silver['g/s_roc'] = gold_silver['gold_roc'] / gold_silver['silver_roc']
 
 
 # gs_dfs = [gold_silver, gold_mon, silver_mon]
@@ -151,14 +162,6 @@ factors_4 = pd.merge(gold_ism_core, fedfunds, left_index=True, right_index=True)
 # df_ism = pd.read_csv('https://www.quandl.com/api/v3/datasets/ISM/MAN_PMI.csv?api_key=1mEBe1BeVaAExprr7akA', index_col=['Date'])
 # df_ism = df_ism.iloc[::-1]
 
-
-# Corn data
-# corn_df = pdr.get_data_yahoo(
-#     "CORN",
-#     start='2000-01-01', 
-#     end='2030-12-01')
-# corn_df = corn_df.drop(['Open', 'High', 'Low', 'Adj Close', 'Volume'], axis=1)
-# corn_df.columns = ['Corn']
 
 copper = pdr.DataReader('WPUSI019011', data_source, start, end)
 copper.columns = ['Copper/Prod']
@@ -191,32 +194,43 @@ commodities['ConMachEq_roc'] = roc4(commodities['ConMachEq'])
 fin_dfs = [commodities, commodities_new]
 tot_commodity = pd.concat(fin_dfs, join='outer', axis=1).dropna()
 tot_commodity = tot_commodity.round(4)
-# find yoy% and roc for gold, silver, gold/silver (12 factors)
-gold_silver['Gold_yoy%']= gold_silver['Gold'].pct_change(12)
-gold_silver['Silver_yoy%'] = gold_silver['Silver'].pct_change(12)
-gold_silver['gold/silver_yoy%'] = gold_silver['gold/silver'].pct_change(12)
 
-gold_silver.round(3)
+
+
+metal_factors4 = [tot_commodity, factors_4]
+factors = pd.concat(metal_factors4, join='outer', axis=1)
+
+
+factors = factors.iloc[37:]
+factors = (factors.ffill()+factors.bfill())/2
+factors = factors.bfill().ffill()
+# factors = factors.dropna()
+# factors=factors.fillna(factors.mean())
+factors = factors.round(3)
+
+factors_inflation = [factors, cpi_data]
+factors_cpi = pd.concat(factors_inflation, join='outer', axis=1)
+factors_cpi = factors_cpi.dropna()
+
 
 
 if __name__ == "__main__":
-    # print(copper.head())
-    # print(copper.tail())
-    # print(iron_steel.tail())
-    # print(chemical_man.tail())
-    # print(con_mach_eq.tail())
-    # print(commodities_new.tail(4))
-    # print(commodities.tail(4))
 
-    print(tot_commodity.tail(5))
-    # print(tot_commodity.shape)
-    # print(tot_commodity.corr())
+    # print(cpi_data.head(10))
+    # print(cpi_data.tail())
+    # print(cpi_data.shape)
+    # print(cpi_data.isnull().sum())
+    print(factors_cpi.head())
+    print(factors_cpi.tail())
+    print(factors_cpi.shape)
+    print(factors_cpi.columns)
 
-    print(gold_silver.tail(15))  #  falling ratio `GSR` indicates inflation
-    # print(corn_df.head())
-    # print(corn_df.tail())
-    # print(cpi_data.tail(9))
-    # print(df.tail(4))
-    # print(df_mom.tail())
-    # print(factors_4.tail())
+    # print(df.isnull().sum())
+
+    # print(factors.isnull().sum())
+    # print(factors.head())
+    # print(factors.tail())
+    # print(factors.shape)
+    # print(factors.columns)
+
     # print(df_mom.shape)

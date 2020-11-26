@@ -15,13 +15,14 @@ import investpy
 # df_ism = pd.read_csv('https://www.quandl.com/api/v3/datasets/ISM/MAN_PMI.csv?api_key=1mEBe1BeVaAExprr7akA', index_col=['Date'])
 # df_ism = df_ism.iloc[::-1]
 
-data_source = 'fred'
-starttime = datetime.datetime (2000, 1, 1)
-endtime = datetime.datetime (2030, 12, 1)
+
+
 
 data_source = 'fred'
 start = datetime.datetime (2000, 1, 1)     
 end = datetime.datetime (2030, 12, 1)
+starttime = datetime.datetime (2000, 1, 1)
+endtime = datetime.datetime (2030, 12, 1)
 
 
 # remove_columns = ['Open', 'High', 'Low', 'Currency', 'Exchange']

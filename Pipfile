@@ -19,6 +19,7 @@ quandl = "*"
 investpy = "*"
 yfinance = "*"
 scipy = "*"
+category-encoders = "==2"
 
 [requires]
 python_version = "3.8"
