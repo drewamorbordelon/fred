@@ -1,6 +1,9 @@
 fred
 ====
 
+This Repo is a Deep Dive into determining causal factors for economic shifts in GDP and Inflation. The forcus is on Rescaled Ranges, Rates of Changem, and Causal Factors.
+This is a work in progress.
+
 [![Build Status](https://travis-ci.org/zachwill/fred.png?branch=master)](https://travis-ci.org/zachwill/fred)
 
 Python wrapper of the St. Louis Federal Reserve Bank's [FRED API web
